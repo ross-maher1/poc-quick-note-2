@@ -28,3 +28,11 @@ export type Item = {
   description: string;
   createdAt: string;
 };
+
+// Note type - stored in Supabase
+export type Note = {
+  id: string;
+  owner_id: string;
+  content: string;
+  created_at: string;
+};
