@@ -18,7 +18,7 @@ export async function updateSession(request: NextRequest) {
 
   // Skip if Supabase is not configured
   if (!supabaseUrl || !supabaseAnonKey) {
-    return supabaseResponse;
+    return { supabaseResponse, user: null };
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
