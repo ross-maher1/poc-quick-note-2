@@ -226,6 +226,16 @@ CREATE TABLE IF NOT EXISTS public.venues (
     capacity INTEGER,
     notes TEXT
 );
+
+-- 7. NOTES TABLE
+CREATE TABLE IF NOT EXISTS public.notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.notes IS 'Quick notes created by users';
 ```
 
 #### Migration 2: Row Level Security
@@ -243,6 +253,7 @@ ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.set_lists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.acts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.venues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
 
 -- PROFILES POLICIES
 CREATE POLICY "profiles_select_own" ON public.profiles
@@ -301,6 +312,14 @@ CREATE POLICY "venues_update_own" ON public.venues
     FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "venues_delete_own" ON public.venues
     FOR DELETE USING (auth.uid() = user_id);
+
+-- NOTES POLICIES
+CREATE POLICY "notes_select_own" ON public.notes
+    FOR SELECT USING (auth.uid() = owner_id);
+CREATE POLICY "notes_insert_own" ON public.notes
+    FOR INSERT WITH CHECK (auth.uid() = owner_id);
+CREATE POLICY "notes_delete_own" ON public.notes
+    FOR DELETE USING (auth.uid() = owner_id);
 ```
 
 #### Migration 3: Indexes
@@ -338,6 +357,10 @@ CREATE INDEX IF NOT EXISTS idx_acts_user_id ON public.acts(user_id);
 
 -- Venues indexes
 CREATE INDEX IF NOT EXISTS idx_venues_user_id ON public.venues(user_id);
+
+-- Notes indexes
+CREATE INDEX IF NOT EXISTS idx_notes_owner_id ON public.notes(owner_id);
+CREATE INDEX IF NOT EXISTS idx_notes_owner_id_created_at ON public.notes(owner_id, created_at DESC);
 ```
 
 #### Migration 4: Triggers & Functions
@@ -394,8 +417,8 @@ CREATE TRIGGER on_auth_user_created
 
 After running all migrations, verify in Supabase Dashboard:
 
-1. **Table Editor:** You should see 6 tables:
-   - `profiles`, `contacts`, `invoices`, `set_lists`, `acts`, `venues`
+1. **Table Editor:** You should see 7 tables:
+   - `profiles`, `contacts`, `invoices`, `set_lists`, `acts`, `venues`, `notes`
 
 2. **Database → Triggers:** You should see:
    - `on_auth_user_created`

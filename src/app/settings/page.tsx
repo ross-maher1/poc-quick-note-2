@@ -14,14 +14,16 @@ export default function SettingsPage() {
 
   const handleSignOut = async () => {
     setSigningOut(true);
-    const supabase = createClient();
-
-    // Sign out with timeout - redirect regardless of API response
-    const signOutPromise = supabase.auth.signOut();
-    const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 3000));
-
-    await Promise.race([signOutPromise, timeoutPromise]);
-    window.location.href = "/auth/login";
+    try {
+      const supabase = createClient();
+      const signOutPromise = supabase.auth.signOut();
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 3000));
+      await Promise.race([signOutPromise, timeoutPromise]);
+    } catch {
+      // Redirect regardless of error
+    } finally {
+      window.location.href = "/auth/login";
+    }
   };
 
   return (

@@ -82,7 +82,12 @@ export default function NotesClient({ initialNotes, userId }: NotesClientProps) 
       reset();
     } catch (err: unknown) {
       console.error("Error saving note:", err);
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : typeof err === "object" && err !== null && "message" in err
+            ? String((err as { message: unknown }).message)
+            : "Unknown error";
       if (errorMessage.includes("aborted")) {
         setError("Request timed out. Please check your connection.");
       } else {
